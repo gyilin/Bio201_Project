@@ -225,17 +225,14 @@ mutate(delta_propionate = week3 - week1) %>%
 #U043, #0U52 #0U57 #U369 #U377 #U379 #U382 #U387 #U388 #U390 de#U392
 gather(key=study_week, value= proprionate_value, week1:week3)
 
-write_delim(HiMaize_weekly_delta, path = "Yilin/curated_data/long_priop_delta.txt", delim = "\t") 
-
-HiMaize_weekly_increase <- HiMaize_weekly_delta %>%
-filter(delta_propionate > 0)
+write_delim(HiMaize_weekly_delta, path = "~/Documents/Bio201_Project/Yilin/curated_data/long_priop_delta.txt", delim = "\t") 
 
 
 # sample data 
 long_priop_delta_table <- HiMaize_weekly_delta %>% 
   mutate(sample_id = paste(participant_id, study_week, sep="_")) %>% #cobine two columns to make new column
-  column_to_rownames(var = "sample_id") %>% 
-  sample_data(.) 
+  column_to_rownames(var = "sample_id") %>%
+sample_data(.)
 
 # seq var info 
 all_data_indv <- read_delim("final_project_data/species_avg_shared.txt", 
@@ -270,11 +267,16 @@ select(tax_name, category, phylum)
  generator_info$tax_name <- tolower(generator_info$tax_name)
 
 sample_data_long_cut <- sample_data_long %>%
-    select(sample, tax_name, abundance,delta_propionate, proprionate_value)
+    select(sample, tax_name, abundance,delta_propionate, proprionate_value,semester)
 
  relative_sample <- inner_join(sample_data_long_cut,generator_info,
                                by = ("tax_name")) 
 relative_sample <- unique(relative_sample [,c("sample","tax_name", "category", "abundance", "delta_propionate", "proprionate_value")])
+
+```
+
+#tidy data for correlation
+```{r pressure, echo=FALSE}
 
 #week 3 data with mached metabolic identities
 grep_week3<- relative_sample[grep("week3", relative_sample$sample), ]
@@ -288,8 +290,10 @@ summarize(prop_abundance = sum(abundance))
 delta_propionate <- grep_week3 %>%
   select(sample,delta_propionate,proprionate_value)%>%
     distinct(., sample, .keep_all = TRUE) 
+
 graph_data<- inner_join(prop_gen_abd,delta_propionate,
                         by = ("sample"))
+
 #propionate generator abundance for group1
 grep_week1<- relative_sample[grep("week1", relative_sample$sample), ]
 
@@ -333,11 +337,7 @@ prop_gen_abd_all <- inner_join(gen_abd_1,gen_abd_3,
                               by = c("Participant_ID")) %>%
 mutate(delta_abundance = prop_abundance_wk3 - prop_abundance_wk1)
 
-# try-out
-sample_data_long_new <- sample_data_long %>%
-  select(-sample) %>%
-    spread(study_week, abundance)
-graph_data_all <- full_join (graph_data_1,graph_data)
+
 ```
 ## relationship with propionate generators 
 ```{r pressure, echo=FALSE}
@@ -386,19 +386,69 @@ summary(m_value) #view results
 ```{r pressure, echo=FALSE}
 
 #correlation: difference in semseter [since different semster have different pariticpants with different original gut microbiomes]; prop_gen abundance change by semseter (fall2015 vs winter 2017)
-#winter 2017 
 
-plot_prop_value<- graph_data %>%
- ggplot(aes(x = proprionate_value,
-             y = prop_abundance)) + 
+#winter 2017 
+sample_data_semster <- sample_data_long %>%
+  select(semester, participant_id,delta_propionate)%>%
+      distinct(., participant_id, .keep_all = TRUE) 
+
+
+prop_gen_abd_all <- prop_gen_abd_all %>%
+  rename_all (tolower)
+
+#data with delta abundance, semster, and delta propionate
+sample_comparison<- inner_join(prop_gen_abd_all,sample_data_semster,
+           by = c("participant_id"))
+
+graph_3 <- sample_comparison %>%
+  filter(semester == "Winter2017")
+
+plot_winter2017<- graph_3 %>%
+ ggplot(aes(x = delta_propionate,
+             y = delta_abundance)) + 
   geom_point() + #puts data points to match x and y coordinates
   geom_smooth(method = "lm", #used to create a linear best fit line
               se = FALSE) + #hides confidence interval around line 
-  xlab("propionate mean (mmol/kg)") + 
-  ylab("propionate generator abundance
+  xlab("delta propionate") + 
+  ylab("delta abundance of propionate in students in winter 2017")
+plot_winter2017
+
+save_plot(filename = "Yilin/figures/winter2017's delta abundance vs delta propionate .pdf", 
+          plot= plot_winter2017,
+           nrow = 2, ncol = 3, 
+          base_aspect_ratio = 1.1)
+
+#correlation test
+m_winter <- graph_3 %>%
+  lm(delta_propionate ~ delta_abundance, data = .) #test relationship
+summary(m_winter) #view results 
+#the p value is  0.7174, larger than 0.05, which means we can't use the linear model to interpreate the correlation that there could some linear relationship about propionate value  and propionat generator abudance;
 
 #fall2015 vs winter 2017
-# (correlation: difference in abundance vs delta propionate (all)
  
+
+# (correlation: difference in abundance vs delta propionate (all)
+ plot_delta <- sample_comparison %>%
+ ggplot(aes(x = delta_propionate,
+             y = delta_abundance)) + 
+  geom_point() + #puts data points to match x and y coordinates
+  geom_smooth(method = "lm", #used to create a linear best fit line
+              se = FALSE) + #hides confidence interval around line 
+  xlab("delta propionate") + 
+  ylab("delta abundance of propionate in students of 2 semesters")
+plot_delta
+
+save_plot(filename = "Yilin/figures/all students' delta abundance vs delta propionate .pdf", 
+          plot= plot_delta,
+           nrow = 2, ncol = 3, 
+          base_aspect_ratio = 1.1)
+
+#correlation test
+m_delta <- sample_comparison %>%
+  lm(delta_propionate ~ delta_abundance, data = .) #test relationship
+summary(m_delta) #view results 
+
+#the p value is  0.8417, larger than 0.05, which means we can't use the linear model to interpreate the correlation that there could some linear relationship about propionate value  and propionat generator abudance;
+
 ```
 
