@@ -238,7 +238,7 @@ long_priop_delta_table <- HiMaize_weekly_delta %>%
   sample_data(.) 
 
 # seq var info 
-all_data_indv <- read_delim("~/Documents/Bio201_Project/final_project_data/species_avg_shared.txt", 
+all_data_indv <- read_delim("final_project_data/species_avg_shared.txt", 
                             delim = "\t", escape_double = FALSE, 
                             trim_ws = TRUE, 
                             col_types = cols()) %>%
@@ -298,7 +298,9 @@ prop_gen_abd_1 <- grep_week1 %>%
 filter (category == "propionate_gen") %>%
 select(-tax_name) %>%
 group_by(sample) %>%
-summarize(prop_abundance = sum(abundance)) %>%
+summarize(prop_abundance = sum(abundance))
+
+gen_abd_1<- prop_gen_abd_1 %>%
 mutate(Participant_ID = paste(sample)) %>% #copy column
 separate(Participant_ID, 
          sep = "_", 
@@ -310,13 +312,16 @@ separate(Participant_ID,
 delta_propionate <- grep_week1 %>%
   select(sample,delta_propionate,proprionate_value)%>%
     distinct(., sample, .keep_all = TRUE) 
+
 graph_data_1<- inner_join(prop_gen_abd_1,delta_propionate,
                         by = ("sample"))
 
 prop_gen_abd <- grep_week3 %>%
 filter (category == "propionate_gen") %>%
 group_by(sample) %>%
-summarize(prop_abundance = sum(abundance)) %>%
+summarize(prop_abundance = sum(abundance))
+
+  gen_abd_3 <- prop_gen_abd %>%
 mutate(Participant_ID = paste(sample)) %>% #copy column
 separate(Participant_ID, 
          sep = "_", 
@@ -324,9 +329,9 @@ separate(Participant_ID,
   select(-sample,-study_week) %>% 
   rename(prop_abundance_wk3 = prop_abundance)
 
-prop_gen_abd_all <- inner_join(prop_gen_abd,prop_gen_abd_1,
+prop_gen_abd_all <- inner_join(gen_abd_1,gen_abd_3,
                               by = c("Participant_ID")) %>%
-mutate(delta_abundance = prop_abundance_wk3 - prop_abundance_wk1 )
+mutate(delta_abundance = prop_abundance_wk3 - prop_abundance_wk1)
 
 # try-out
 sample_data_long_new <- sample_data_long %>%
@@ -374,6 +379,11 @@ m_value <- graph_data_1 %>%
 summary(m_value) #view results 
 #the p value is  0.536, larger than 0.05, which means we can't use the linear model to interpreate the correlation that there could some linear relationship about propionate value  and propionat generator abudance;
 
+ 
+```
+
+##correlation seperate by semester
+```{r pressure, echo=FALSE}
 
 #correlation: difference in semseter [since different semster have different pariticpants with different original gut microbiomes]; prop_gen abundance change by semseter (fall2015 vs winter 2017)
 #winter 2017 
@@ -389,7 +399,6 @@ plot_prop_value<- graph_data %>%
 
 #fall2015 vs winter 2017
 # (correlation: difference in abundance vs delta propionate (all)
-
  
 ```
 
