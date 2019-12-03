@@ -180,6 +180,42 @@ wilcox.test(x = LOODAT_weekly$week1,
 #the p value for the wilcoxon is 0.9123, which is larger than 0.05 and fails to reject the null. The propionate concentration for week 1 and week 3 are the same.
 
 # so only Hi_Maize shows significant difference for propionate concentration.
+
+#graphing to see whether the change is increase or decrease.
+plot_HiMaize <- HiMaize_weekly_delta %>%
+ggplot(aes(x = supplement_consumed, 
+             y = delta_propionate, 
+              supplement_consumed, semester)) +
+  geom_point(aes(color = "delta_propionate")) +
+   labs(x = "supplement",
+       y = "change in propionate  (mmol/kg)") +
+    theme(legend.position = "none")
+plot_HiMaize
+
+plot_HiMaize_sem <- HiMaize_weekly_delta %>%
+ggplot(aes(x = supplement_consumed, 
+             y = delta_propionate, 
+              supplement_consumed, semester)) +
+  geom_point(aes(color = "delta_propionate")) +
+    facet_grid(~semester, scales = "free")+
+   labs(x = "supplement",
+       y = "change in propionate  (mmol/kg)") +
+    theme(legend.position = "none")
+
+plot_HiMaize_sem
+
+save_plot(filename = "Yilin/figures/Hi_Maize change.pdf",
+          plot = plot_HiMaize,
+          nrow = 1, ncol = 2, 
+          base_aspect_ratio = 1.1)
+
+save_plot(filename = "Yilin/figures/HiMaize change based on semester.pdf", 
+          plot=plot_HiMaize_sem,
+           nrow = 1, ncol = 2, 
+          base_aspect_ratio = 1.1)
+
+
+
 ```
 ## Is other SCFA also changed according to the supplement?
 
@@ -382,6 +418,33 @@ summary(m_value) #view results
  
 ```
 
+##delta abundance shown by graph & Is delta abundance of two semsters students the same? 
+```{r pressure, echo=FALSE}
+
+plot_abd <- sample_comparison %>%
+ggplot(aes(x = supplement_consumed, 
+             y = delta_abundance, 
+              supplement_consumed, semester)) +
+  geom_point(aes(color = "delta_abundance")) +
+    facet_grid(~semester, scales = "free")+
+   labs(x = "supplement",
+       y = "change in abundance of propionate generators") +
+    theme(legend.position = "none")
+plot_abd
+
+save_plot(filename = "Yilin/figures/delta_abundance based on semester.pdf", 
+          plot= plot_abd,
+           nrow = 1, ncol = 2, 
+          base_aspect_ratio = 1.1)
+
+#is the change of abundance in two semester's students the same?
+#sample size:
+#normality:
+#variance:
+
+
+```
+
 ##correlation seperate by semester
 ```{r pressure, echo=FALSE}
 
@@ -389,7 +452,7 @@ summary(m_value) #view results
 
 #winter 2017 
 sample_data_semster <- sample_data_long %>%
-  select(semester, participant_id,delta_propionate)%>%
+  select(semester, participant_id,delta_propionate,supplement_consumed)%>%
       distinct(., participant_id, .keep_all = TRUE) 
 
 
@@ -399,6 +462,9 @@ prop_gen_abd_all <- prop_gen_abd_all %>%
 #data with delta abundance, semster, and delta propionate
 sample_comparison<- inner_join(prop_gen_abd_all,sample_data_semster,
            by = c("participant_id"))
+
+
+write_delim(sample_comparison, path = "~/Documents/Bio201_Project/Yilin/curated_data/merged_data.txt", delim = "\t") 
 
 graph_3 <- sample_comparison %>%
   filter(semester == "Winter2017")
@@ -425,7 +491,8 @@ summary(m_winter) #view results
 #the p value is  0.7174, larger than 0.05, which means we can't use the linear model to interpreate the correlation that there could some linear relationship about propionate value  and propionat generator abudance;
 
 #fall2015 vs winter 2017
- 
+
+
 
 # (correlation: difference in abundance vs delta propionate (all)
  plot_delta <- sample_comparison %>%
