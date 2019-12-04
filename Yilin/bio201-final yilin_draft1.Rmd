@@ -230,12 +230,13 @@ scfa_weekly_but_HiMaize <- scfa_weekly_but %>%
    filter (supplement_consumed == "HiMaize")
 
 #Assumption check 
-#1. Sample Size: week 1: 43; week 3: 41
+#1. Sample Size: week 1: 40; week 3: 40
 #2. Noramlity
 shapiro.test(scfa_weekly_but_HiMaize$week1) 
-ggplot(scfa_weekly_but_HiMaize, aes(x = week1)) + geom_histogram() # p=0.5553, normal distributed -> yet p value isn't small enough-> not normal 
+ggplot(scfa_weekly_but_HiMaize, aes(x = week1)) + geom_histogram() # p=0.5553, normal distributed.
 shapiro.test(scfa_weekly_but_HiMaize$week3) 
-ggplot(scfa_weekly_but_HiMaize, aes(x = week3)) + geom_histogram() #p=0.06687, quitely normally distributed ->  normal
+ggplot(scfa_weekly_but_HiMaize, aes(x = week3)) + geom_histogram() #p=0.06687, p-value too small; rejects the null-> not normal 
+#one normal & one non-normal-> non-normal test
 #3. Variance
 var.test(x = scfa_weekly_but_HiMaize$week1, 
          y = scfa_weekly_but_HiMaize$week3, 
@@ -250,6 +251,37 @@ wilcox.test(x = scfa_weekly_but_HiMaize$week1,
             alternative = "less", paired = TRUE, var.equal = TRUE)
 
 #the p value for the wilcoxon is 0.2486, which is larger than 0.05 and thus confirms the null that the butryate concentration for week 1 and week 3 are the same.
+
+# Acetate
+scfa_weekly_ace <-scfa_weekly %>% 
+  select(-starts_with("but"), -starts_with("prop"), -ends_with("median")) %>% 
+  spread(study_week, acetate_mean)
+
+scfa_weekly_ace_HiMaize <- scfa_weekly_ace %>% 
+ filter(!is.na(supplement_consumed)) %>%
+   filter (supplement_consumed == "HiMaize")
+
+#Assumption check 
+#1. Sample Size: week 1: 42; week 3: 41
+#2. Noramlity
+shapiro.test(scfa_weekly_ace_HiMaize$week1) 
+ggplot(scfa_weekly_ace_HiMaize, aes(x = week1)) + geom_histogram() # p=7.322e-05, too small; graph skewed to right-> not normal
+shapiro.test(scfa_weekly_ace_HiMaize$week3) 
+ggplot(scfa_weekly_ace_HiMaize, aes(x = week3)) + geom_histogram() #p=0.0003627, too small; graph skewed to right-> not normal
+#3. Variance
+var.test(x = scfa_weekly_ace_HiMaize$week1, 
+         y = scfa_weekly_ace_HiMaize$week3, 
+         alternative = "two.sided")
+ # p=0.3053, larger than 0.05-> variances are equal
+
+ # non-normal, equal variances, use wilcoxon test 
+
+scfa_weekly_ace_HiMaize <- na.omit(scfa_weekly_ace_HiMaize) 
+wilcox.test(x = scfa_weekly_ace_HiMaize$week1, 
+            y = scfa_weekly_ace_HiMaize$week3, 
+            alternative = "less", paired = TRUE, var.equal = TRUE)
+
+#the p value for the wilcoxon is 0.492, which is larger than 0.05 and thus confirms the null that the acetate concentration show so significant difference between week 1 and week3.
 ```
 ## delta changes
 
@@ -416,6 +448,15 @@ summary(m_value) #view results
 #the p value is  0.536, larger than 0.05, which means we can't use the linear model to interpreate the correlation that there could some linear relationship about propionate value  and propionat generator abudance;
 
  
+save_plot(filename = "Yilin/figures/abundance vs mean.pdf", 
+          plot= plot_prop_delta,
+           nrow = 1, ncol = 2, 
+          base_aspect_ratio = 1.1)
+ 
+save_plot(filename = "Yilin/figures/abundance vs delta.pdf", 
+          plot= plot_prop_value,
+           nrow = 1, ncol = 2, 
+          base_aspect_ratio = 1.1)
 ```
 
 ##delta abundance shown by graph & Is delta abundance of two semsters students the same? 
@@ -427,7 +468,7 @@ ggplot(aes(x = supplement_consumed,
               supplement_consumed, semester)) +
   geom_point(aes(color = "delta_abundance")) +
     facet_grid(~semester, scales = "free")+
-   labs(x = "supplement",
+   labs(x = "semester",
        y = "change in abundance of propionate generators") +
     theme(legend.position = "none")
 plot_abd
@@ -475,7 +516,7 @@ plot_winter2017<- graph_3 %>%
   geom_point() + #puts data points to match x and y coordinates
   geom_smooth(method = "lm", #used to create a linear best fit line
               se = FALSE) + #hides confidence interval around line 
-  xlab("delta propionate") + 
+  xlab("delta propionate(mmol/kg)") + 
   ylab("delta abundance of propionate in students in winter 2017")
 plot_winter2017
 
@@ -488,7 +529,7 @@ save_plot(filename = "Yilin/figures/winter2017's delta abundance vs delta propio
 m_winter <- graph_3 %>%
   lm(delta_propionate ~ delta_abundance, data = .) #test relationship
 summary(m_winter) #view results 
-#the p value is  0.7174, larger than 0.05, which means we can't use the linear model to interpreate the correlation that there could some linear relationship about propionate value  and propionat generator abudance;
+#the p value is  0.7174, larger than 0.05, which means we can't use the linear model to interpreate the correlation. There is no linear relationship about delta propionate value and the change inpropionat generator abudance of students in winter2017;
 
 #fall2015 vs winter 2017
 
@@ -501,13 +542,13 @@ summary(m_winter) #view results
   geom_point() + #puts data points to match x and y coordinates
   geom_smooth(method = "lm", #used to create a linear best fit line
               se = FALSE) + #hides confidence interval around line 
-  xlab("delta propionate") + 
-  ylab("delta abundance of propionate in students of 2 semesters")
+  xlab("delta propionate (mmol/kg)") + 
+  ylab("delta abundance of propionate generators for all")
 plot_delta
 
 save_plot(filename = "Yilin/figures/all students' delta abundance vs delta propionate .pdf", 
           plot= plot_delta,
-           nrow = 2, ncol = 3, 
+           nrow = 2, ncol = 2, 
           base_aspect_ratio = 1.1)
 
 #correlation test
@@ -515,7 +556,7 @@ m_delta <- sample_comparison %>%
   lm(delta_propionate ~ delta_abundance, data = .) #test relationship
 summary(m_delta) #view results 
 
-#the p value is  0.8417, larger than 0.05, which means we can't use the linear model to interpreate the correlation that there could some linear relationship about propionate value  and propionat generator abudance;
+#the p value is  0.8417, larger than 0.05, which means we can't use the linear model to interpreate the correlation. There is no linear relationship about delta propionate value and the change in propionat generator abudance for all students who consume HiMaize;
 
 ```
 
