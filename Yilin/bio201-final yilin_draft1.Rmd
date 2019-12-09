@@ -81,6 +81,20 @@ HiMaize_BRMPS_weekly <- scfa_weekly %>%
    filter(!is.na(supplement_consumed)) %>%
    filter(supplement_consumed == "HiMaize+BRMPS")
 
+
+write_delim(Accessible_weekly, path = "~/Documents/Bio201_Project/curated_data/Accessible_weekly.txt", delim = "\t") 
+write_delim(none_weekly, path = "~/Documents/Bio201_Project/curated_data/none_weekly.txt", delim = "\t") 
+write_delim(BRMPS_weekly, path = "~/Documents/Bio201_Project/curated_data/BRMPS_weekly.txt", delim = "\t") 
+write_delim(HiMaize_weekly, path = "~/Documents/Bio201_Project/curated_data/HiMaize_weekly.txt", delim = "\t") 
+write_delim(Inulin_weekly, path = "~/Documents/Bio201_Project/curated_data/Inulin_weekly.txt", delim = "\t") 
+write_delim(Psyllium_BRMPS_weekly, path = "~/Documents/Bio201_Project/curated_data/Psyllium_BRMPS_weekly.txt", delim = "\t") 
+
+write_delim(Psyllium_weekly, path = "~/Documents/Bio201_Project/curated_data/Psyllium_weekly.txt", delim = "\t") 
+write_delim(BRMPS_Accessible_weekly, path = "~/Documents/Bio201_Project/curated_data/BRMPS_Accessible_weekly.txt", delim = "\t") 
+write_delim(LOODAT_weekly, path = "~/Documents/Bio201_Project/curated_data/LOODAT_weekly.txt", delim = "\t") 
+write_delim(transition_HiMaize_weekly, path = "~/Documents/Bio201_Project/curated_data/transition_HiMaize_weekly.txt", delim = "\t") 
+write_delim(HiMaize_BRMPS_weekly, path = "~/Documents/Bio201_Project/curated_data/HiMaize_BRMPS_weekly.txt", delim = "\t") 
+
 ```
 ## Assumptions & T Test for HiMaize, HiMaize+BRMPS, Inulin, LOODAT
 
